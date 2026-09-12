@@ -1,0 +1,21 @@
+[Unit]
+Description=M20 traversability mapping consuming AOS 104 evidence cloud
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=nvidia
+Group=nvidia
+WorkingDirectory=/home/nvidia/m20_traversability_ws
+Environment=ROS_DOMAIN_ID=0
+Environment=RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+Environment=FASTRTPS_DEFAULT_PROFILES_FILE=/etc/ros/m20_traversability_fastdds.xml
+Environment=ROS2CLI_DISABLE_DAEMON=1
+ExecStart=/bin/bash -c 'source /opt/ros/humble/setup.bash && source /home/nvidia/m20_traversability_ws/install/setup.bash && export FASTRTPS_DEFAULT_PROFILES_FILE=/etc/ros/m20_traversability_fastdds.xml && exec ros2 launch m20_traversability_mapping m20_traversability_mapping.launch.py'
+Restart=on-failure
+RestartSec=2
+KillMode=control-group
+
+[Install]
+WantedBy=multi-user.target

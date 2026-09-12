@@ -1,0 +1,26 @@
+m20_astar_global_planner:
+  ros__parameters:
+    use_sim_time: false
+    map_topic: /map
+    odom_topic: /lio/robo/odom
+    goal_topics: [/goal_pose, /target_goal, /move_base_simple/goal]
+    global_path_topic: /m20/navigation/global_path
+    status_topic: /m20/navigation/global_planner_status
+    planning_resolution: 0.10
+    inflation_radius: 0.45
+    occupied_threshold: 65
+    unknown_is_occupied: true
+    nearest_free_radius: 0.75
+    replan_distance: 0.50
+    path_spacing: 0.15
+    maximum_planning_time: 4.0
+
+m20_path_lookahead:
+  ros__parameters:
+    use_sim_time: false
+    global_path_topic: /m20/navigation/global_path
+    odom_topic: /lio/robo/odom
+    local_goal_topic: /local_goal
+    lookahead_distance: 2.50
+    republish_distance: 0.12
+    heartbeat_period: 1.0

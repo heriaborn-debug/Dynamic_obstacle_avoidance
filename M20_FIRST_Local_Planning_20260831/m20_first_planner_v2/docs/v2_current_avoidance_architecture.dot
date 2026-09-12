@@ -1,0 +1,182 @@
+digraph M20V2 {
+  graph [
+    rankdir=TB,
+    bgcolor="#F7F8FA",
+    pad="0.35",
+    nodesep="0.28",
+    ranksep="0.48",
+    splines=ortho,
+    fontname="Noto Sans CJK SC",
+    fontsize=18,
+    label="M20 FIRST-V2 当前动态避障架构（2026-07-27）",
+    labelloc=t,
+    labeljust=c
+  ];
+  node [
+    shape=box,
+    style="rounded,filled",
+    color="#536273",
+    fillcolor="#FFFFFF",
+    fontname="Noto Sans CJK SC",
+    fontsize=12,
+    margin="0.16,0.10"
+  ];
+  edge [
+    color="#687686",
+    fontname="Noto Sans CJK SC",
+    fontsize=10,
+    arrowsize=0.7
+  ];
+
+  subgraph cluster_inputs {
+    label="A. 输入与坐标基准";
+    color="#9AA7B5";
+    fillcolor="#EDF2F6";
+    style="rounded,filled";
+
+    lidar [label="前/后 Airy 雷达\n/LIDAR/POINTS\n约 7–10 Hz", fillcolor="#DDF3F0"];
+    odom [label="机器狗里程计\n/m20/ground_truth\n位置、姿态、实际 vx/vy/wz", fillcolor="#DDF3F0"];
+    goal [label="全局 A* 输出\n/path_Astar + /local_goal", fillcolor="#DDEAF8"];
+    first_lib [label="厂家 FIRST 轨迹库\n4641 条候选 / 每条 10 点", fillcolor="#DDEAF8"];
+  }
+
+  subgraph cluster_perception {
+    label="B. 外层动态感知与预测（Autoware 链）";
+    color="#429488";
+    fillcolor="#E8F5F2";
+    style="rounded,filled";
+
+    registered [label="点云注册与扩展视野\n16 m × 16 m\n/m20/outer_obstacle_points_registered"];
+    cluster [label="Euclidean Cluster\n障碍物聚类、形状估计"];
+    tracker [label="Multi-object Tracker\n跨帧关联、速度估计、静动态状态"];
+    prediction [label="Dynamic Trajectory Predictor V2\n输出对象未来轨迹\n/m20/predicted_objects"];
+    continuity [label="预测连续性缓存\nFresh ≤ 0.75 s\nCoasting 0.75–1.50 s\n线性外推 + 半径逐步膨胀", fillcolor="#FFF3CD"];
+
+    lidar -> registered -> cluster -> tracker -> prediction -> continuity;
+  }
+
+  subgraph cluster_static {
+    label="C. FIRST 原生静态避障输入（保持不改）";
+    color="#527DAA";
+    fillcolor="#EBF2FA";
+    style="rounded,filled";
+
+    local_scan [label="/local_scans\n稠密局部障碍点云"];
+    voxel [label="0.05 m 局部体素栅格\n90 × 80"];
+    static_eval [label="correspondences 路径占用查询\n静态碰撞 + 三级障碍惩罚"];
+
+    lidar -> local_scan -> voxel -> static_eval;
+    first_lib -> static_eval;
+  }
+
+  subgraph cluster_scorer {
+    label="D. C++ 动态评分器 first_dynamic_scorer_v2（10 Hz）";
+    color="#D09136";
+    fillcolor="#FFF4E3";
+    style="rounded,filled";
+
+    object_rollout [label="对象时序碰撞体\n未来 0–3.0 s / 0.05 s"];
+    brake [label="真实运动约束模型\n从当前实际速度刹车到零\n含指令延迟、加减速度、速度上限"];
+    brake_check [shape=diamond, label="刹车轨迹是否与\n对象未来轨迹碰撞？", fillcolor="#FFE3E3"];
+    threat [label="潜在冲突状态 threat_latched\n只保持风险上下文，不等于停车\n4 个新鲜安全帧后才释放", fillcolor="#FFD9D9", color="#C94949"];
+    candidate_rollout [label="4641 条候选 × 6 个回退阶段\n按当前实际速度推演到 3.0 s"];
+    conflict_zone [label="【已实现】提取每条候选的冲突区\n不是只判断轨迹线相交\n计算双方进入与完全离开冲突区的时刻", fillcolor="#FFF0D6", color="#D47A00", penwidth=2];
+    time_window [label="【已实现】时空可达窗口\n机器狗：[tr_enter, tr_clear]\n使用当前速度、加减速度、延迟、制动距离\n行人：[tp_enter, tp_clear] + 预测不确定度", fillcolor="#FFF0D6", color="#D47A00", penwidth=2];
+    precedence [shape=diamond, label="【已实现】哪种通行次序\n具有足够安全时间裕量？", fillcolor="#FFE6B8", color="#D47A00", penwidth=2];
+    pass_first [label="PASS_FIRST 抢先通过\ntr_clear + margin < tp_enter\n保持/适当提速，候选不按相交直接判死", fillcolor="#DDF4E4", color="#4A8A5B"];
+    yield_behind [label="YIELD_BEHIND 让行绕后\ntp_clear + margin < tr_enter\n先减速等待，禁止抢到行人前方\n行人后方候选不罚", fillcolor="#DDEAF8", color="#527DAA"];
+    high_risk [label="HIGH_RISK 时间占用重叠\n或预测不确定度过大\n硬阻塞；停车也不安全时进入 Escape", fillcolor="#FFD9D9", color="#C94949"];
+    intent_memory [label="交互意图短时一致性\n按 track_id 保存 PASS / YIELD / RISK\n只锁通行次序，不锁具体轨迹", fillcolor="#F4E9FF", color="#735DA8"];
+    dynamic_eval [label="逐时刻精确包络复核\n机器人矩形 vs 对象圆形\n净空、时间裕量、绕后方向和舒适性代价"];
+    dynamic_outputs [label="动态评分输出\n① 6×4641 costs\n② 4641 escape costs\n③ speed limits + interaction intent\n④ reachability / TTC / time gap", fillcolor="#FFF9EC"];
+
+    continuity -> object_rollout;
+    odom -> brake;
+    odom -> candidate_rollout;
+    first_lib -> candidate_rollout;
+    object_rollout -> brake_check;
+    brake -> brake_check;
+    brake_check -> threat [label="是：保留潜在冲突"];
+    brake_check -> candidate_rollout [label="无论是否碰撞，继续评分"];
+    threat -> dynamic_outputs;
+    candidate_rollout -> conflict_zone;
+    object_rollout -> conflict_zone;
+    conflict_zone -> time_window -> precedence;
+    precedence -> pass_first [label="机器狗先清空冲突区"];
+    precedence -> yield_behind [label="行人先清空冲突区"];
+    precedence -> high_risk [label="时间窗重叠/不确定"];
+    pass_first -> intent_memory;
+    yield_behind -> intent_memory;
+    high_risk -> intent_memory;
+    intent_memory -> dynamic_eval;
+    dynamic_eval -> dynamic_outputs;
+  }
+
+  subgraph cluster_planner {
+    label="E. Python FIRST-V2 决策器 m20_first_planner_v2（10 Hz）";
+    color="#735DA8";
+    fillcolor="#F1EDFA";
+    style="rounded,filled";
+
+    combine [label="合并评分\n静态占用 + 目标方向/距离\n+ C++ 动态时序代价\n+ PASS_FIRST / YIELD_BEHIND / HIGH_RISK"];
+    normal [shape=diamond, label="阶段 0\nscale=1.00, range=4.0 m\n有安全候选？", fillcolor="#FFFFFF"];
+    fallback_scale [shape=diamond, label="阶段 1\nscale=0.75, range=3.0 m\n有安全候选？", fillcolor="#FFFFFF"];
+    fallback_range [shape=diamond, label="阶段 2–5\nrange=2.5 → 2.0 → 1.5 → 1.0 m\n有安全候选？", fillcolor="#FFFFFF"];
+    choose [label="选择最低综合代价候选\n发布局部路径", fillcolor="#DDF4E4"];
+    intrusion [shape=diamond, label="刹车位置不安全\n或 threat_latched？", fillcolor="#FFE3E3", color="#C94949"];
+    escape [shape=diamond, label="Escape 候选是否满足：\n0–1.2 s 全程无接触\n且最小净空优于原地停车？", fillcolor="#FFF0D6"];
+    choose_escape [label="选择最低 Escape 代价\n每 0.1 s 重新规划\n不锁定旧动作", fillcolor="#FFE6B8"];
+    stop [label="发布零 /NAV_CMD\n单点停止路径", fillcolor="#FFD9D9", color="#C94949"];
+    release_wait [label="动态释放迟滞\n按 3 个新动态代价帧计数\n不是按控制循环计数", fillcolor="#FFF3CD"];
+
+    static_eval -> combine;
+    goal -> combine;
+    dynamic_outputs -> combine;
+    combine -> normal;
+    normal -> choose [label="是"];
+    normal -> fallback_scale [label="否"];
+    fallback_scale -> choose [label="是"];
+    fallback_scale -> fallback_range [label="否"];
+    fallback_range -> choose [label="是"];
+    fallback_range -> intrusion [label="全部失败"];
+    dynamic_outputs -> intrusion;
+    intrusion -> escape [label="是：禁止仅等待"];
+    intrusion -> release_wait [label="否：普通动态阻塞"];
+    release_wait -> normal [label="新鲜安全帧到齐"];
+    release_wait -> stop [label="尚未释放"];
+    escape -> choose_escape [label="是"];
+    escape -> stop [label="否"];
+  }
+
+  subgraph cluster_execution {
+    label="F. 真机一致的执行链";
+    color="#59636E";
+    fillcolor="#EEF0F2";
+    style="rounded,filled";
+
+    nav_cmd [label="/NAV_CMD\nx_vel / y_vel / yaw_vel", fillcolor="#E0E7EE"];
+    sdk [label="M20 官方 SDK / RL 控制链\n轮式前进 + 腿式转向"];
+    gazebo [label="Gazebo M20 动力学模型\n产生真实运动与碰撞"];
+
+    choose -> nav_cmd;
+    choose_escape -> nav_cmd;
+    stop -> nav_cmd;
+    nav_cmd -> sdk -> gazebo;
+    gazebo -> odom [label="闭环反馈"];
+  }
+
+  subgraph cluster_risks {
+    label="当前需要一起优化的三个决策点";
+    color="#C94949";
+    fillcolor="#FFF1F1";
+    style="rounded,filled";
+
+    risk1 [label="已确定 1：用时空占用区间替代“几何相交即失败”\n机器狗能提前完全通过时允许 PASS_FIRST", fillcolor="#E6F5EA", color="#4A8A5B"];
+    risk2 [label="已确定 2：快速横穿行人优先 YIELD_BEHIND\n短暂等待后从其运动方向后方通过，后方不罚", fillcolor="#E7F0FA", color="#527DAA"];
+    risk3 [label="待确定：停车也将被撞时\nHIGH_RISK 应何时提前并行启用 Escape？", fillcolor="#FFE3E3", color="#C94949"];
+  }
+
+  precedence -> risk1 [style=dashed, color="#4A8A5B"];
+  yield_behind -> risk2 [style=dashed, color="#527DAA"];
+  intrusion -> risk3 [style=dashed, color="#C94949"];
+}

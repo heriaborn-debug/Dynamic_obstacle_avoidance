@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>m20_navigation_integration</name>
+  <version>0.1.0</version>
+  <description>Replaceable global-path interface for the M20 FIRST V2 local planner.</description>
+  <maintainer email="nvidia@example.com">nvidia</maintainer>
+  <license>Apache-2.0</license>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+  <exec_depend>m20_first_planner_v2</exec_depend>
+  <exec_depend>m20_dynamic_prediction_v2</exec_depend>
+  <export><build_type>ament_cmake</build_type></export>
+</package>

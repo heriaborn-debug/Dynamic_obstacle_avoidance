@@ -1,0 +1,62 @@
+m20_first_planner_v2:
+  ros__parameters:
+    use_sim_time: false
+
+    # Deliberately not the vendor /ODOM. Replace at launch with the
+    # localization topic supplied for the NX deployment.
+    odom_topic: /m20/localization/odom
+    goal_topic: /local_goal
+    cloud_topic: /m20/local_mapping/traversability/obstacle_cloud
+    # Input already consists of one classified, inflated obstacle sample per grid cell.
+    # Preserve its real ground z and do not apply raw-point height/count gates again.
+    semantic_obstacle_cloud: true
+    # Shadow output by default. Explicitly select /cmd_vel only for a driven
+    # test after perception, localization and ownership checks pass.
+    cmd_topic: /m20/v2/cmd_vel_candidate
+    local_plan_topic: /m20/v2/local_plan
+    track_path_topic: /m20/v2/track_path
+    local_obstacle_grid_topic: /m20/v2/local_obstacle_grid
+    selected_prediction_markers_topic: /m20/v2/first_selected_prediction_markers
+    planner_stage_topic: /m20/v2/planner_stage
+
+    dynamic_cost_topic: /m20/v2/first_dynamic_costs
+    dynamic_snapshot_topic: /m20/v2/dynamic_scoring_snapshot
+    dynamic_escape_cost_topic: /m20/v2/first_dynamic_escape_costs
+    dynamic_obstacles_topic: /m20/v2/first_dynamic_obstacles_local
+    true_robot_speed_limits_topic: /m20/v2/true_robot_speed_limits
+    true_robot_reachability_topic: /m20/v2/true_robot_reachability
+    dynamic_cost_timeout: 0.35
+    dynamic_block_cost: 1000000.0
+    require_dynamic_input: true
+    dynamic_release_confirmation_frames: 1
+    intrusion_release_confirmation_frames: 4
+    dynamic_point_mask_padding: 0.15
+
+    control_frequency: 10.0
+    compute_deadline: 0.08
+    snapshot_max_skew: 0.20
+    minimum_path_hold_time: 0.35
+    switch_score_margin: 0.50
+    path_switch_penalty: 1.25
+    obstacle_range: 4.0
+    self_clear_x: 0.45
+    self_clear_y: 0.25
+    use_correspondence_collision: true
+
+    path_scale: 1.0
+    min_path_scale: 0.75
+    path_scale_step: 0.25
+    path_range: 4.0
+    min_path_range: 1.0
+    path_range_step: 0.5
+
+    escape_min_translation_speed: 0.15
+    escape_max_translation_speed: 1.0
+    escape_goal_cost_blend: 0.05
+    minimum_escape_hold_time: 0.60
+    # A normal 2-D localization source commonly reports z=0. Falling must be
+    # supplied by a dedicated robot-state interlock on hardware.
+    enable_fallen_height_check: false
+    fallen_height_threshold: 0.25
+    selected_prediction_horizon: 3.0
+    selected_prediction_step: 0.1

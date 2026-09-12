@@ -1,0 +1,19 @@
+[Unit]
+Description=M20 DrDDS SHM evidence point-cloud processor on AOS 104
+After=network-online.target rsdriver-network.service
+Wants=network-online.target rsdriver-network.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/m20-drdds-evidence
+ExecStart=/usr/bin/taskset -c 0-5 /opt/m20-drdds-evidence/drdds_evidence_node
+Restart=on-failure
+RestartSec=2
+TimeoutStopSec=5
+KillMode=control-group
+Environment=LD_LIBRARY_PATH=/usr/local/lib:/usr/lib/aarch64-linux-gnu
+
+[Install]
+WantedBy=multi-user.target

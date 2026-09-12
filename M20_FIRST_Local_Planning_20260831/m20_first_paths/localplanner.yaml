@@ -1,0 +1,111 @@
+# ============ 被basic server覆盖参数 ============
+lookAheadDis: 1.5
+maxSpeedX: 1.5
+maxSpeedY: 0.6
+maxTheta: 1.0
+barking_deceleration: 1.0
+stop_distance: 0.7     
+
+max_v_threshold: 1.2
+# ============ 机器人和传感器配置 ============
+robotLength: 0.84
+robotWidth: 0.5
+sensorOffsetX: 0
+sensorOffsetY: 0
+
+obstacleHeightThre : 0.10
+goal_in_ob_dis: 0.25          # 目标点障碍物检测半径（米），检测以目标点为中心、该半径内的圆形区域           # 改到0.5
+goal_in_ob_z: 0.5            # 目标点障碍物检测Z方向上限（米），从该高度向下检测所有符合XY阈值的栅格
+pointPerPathThre: 1          # dwa初次筛选的碰撞检测阈值
+# =========== 地图处理相关 ===========
+input_source: /NAV_POINTS    #导航接入的处理后地图话题（base_link坐标系）
+
+# ------ obs检测：点云栅格化处理 ---------
+grid_size_: 0.05                 # 点云栅格化处理格子大小
+grid_occu_num_: 2                # 单个格子占用阈值
+
+# ----- 点云累积配置（不用，等接入可通行域） -----
+# 是否启用点云累积（将多帧点云合并，提高障碍物检测稳定性，有累积帧模块后不使用）
+enable_cloud_stacking: false
+# 点云累积帧数 3-5帧, 有累积帧模块后不使用
+cloud_stack_size: 1
+
+# =========== 模式选择相关 ==============
+directLine_mode: true       # 直线/自主
+judge_close: false
+change_close: true          # 为true则为普通直线导航，false则为多阶段导航
+backward_mode: false        # 直线导航可选：前进/后退
+judge_turn: false           # 自主导航：是否进行急转弯检测
+# =========== 到点阈值  ===============
+xy_tolerance: 0.1
+yaw_tolerance: 0.1
+block_number: 1    
+dwa_fine_tune_distance: 0.5       # DWA近距离微调触发距离阈值（米）
+
+# ============ DWA 权重配置 ============
+weight_goal: 1.0
+weight_yaw: 0.5
+weight_spdy: 0.2
+# 障碍惩罚
+weight_ob1: 0.6
+weight_ob2: 0.8    
+weight_ob3: 1.0   
+
+# ============ 全局-局部衔接参数 ============
+local_point_dis: 3.0    # 局部目标点选择距离增加阈值
+local_point_dis_v_max: 5.0    # 局部目标点选择距离增加阈值（速度相关）
+local_try: true          # 118.3/4改为：true-只使用局部规划  false：全局规划+局部规划
+# ========== 自主规划路径模板参数 ==========
+path_num: 4641
+path_sample_num: 10
+
+grid_voxel_size: 0.05
+grid_voxel_offset_x: -1.475
+grid_voxel_offset_y: -1.975
+grid_voxel_num_x: 90
+grid_voxel_num_y: 80
+
+# =========== 直线导航控制参数 ==============
+turn_yaw_kp: 1.5                      # yaw比例系数 Kp
+
+# =========== 控制参数相关 ==============
+angleThreshold: 30.0
+sumAngleThreshold: 75.0
+minSegmentLength: 0.02
+trackDis: 1.5
+speed_ratio: 1.0            # 控制路径选择时的“前瞻距离”或“预测终点”的缩放，值越大，则考虑更远的路径终点，1.0则不缩放
+speed_ratio_yaw: 1.0
+
+# ---- BS覆盖 --------
+dl_min_yaw: 0.7            # 跟踪目标yaw的最小yaw角速率
+dl_min_x: 0.25
+dl_min_y: 0.25
+# -------------------
+pl_min_yaw: 0.25
+pl_min_x: 0.25
+pl_min_y: 0.25
+dl_line_yaw_min: 0.2       # 直线纠偏最小yaw角速率  
+close_deceleration: 1.0
+proximity_distance: 0.5
+warning_threshold: 10.0
+## =========== 【ADD】均匀加减速相关参数 =============
+vel_acc_threshold: 1.0         # 加速阈值（m/s）：超过此速度需要平滑加速，小于此速度可直接响应
+x_acc_increment: 0.05                    # x方向每周期速度增量（m/s） --> 10hz  acc = 10 * x_acc_increment
+
+## ============ 新增参数 ================
+count_num: 10                    # 定位、点云订阅连续性检查迭代次数，停障等待迭代次数
+# judgeDirect停障时，单独调整yaw的最小转角
+only_rotate_yaw: 0.35
+# 停障后决定是否调整yaw的阈值(度)
+adjust_yaw_min_: 1
+# 旋转检测距离容差（米），检测距离 = 机体最小外接圆半径 + rotate_detect_dis
+rotate_detect_dis: 0.0
+# ============================================
+# 转向/接近阶段切换阈值（弧度），小于此值进入接近阶段，0.1-0.15
+turn_approach_threshold: 0.2
+
+# MonitorLoop打印频率 (Hz) 规划中打印频率
+monitor_loop_frequency: 10.0
+
+# 急转弯检测角度阈值（度），用于curvature_check函数，超过此角度认为是大曲率变化
+sharp_turn_angle: 60.0

@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>m20_evidence_mapping</name>
+  <version>0.1.0</version>
+  <description>Robot-centric evidence voxel mapping with visibility-aware clearing for M20.</description>
+  <maintainer email="robotics@example.com">M20 Navigation Team</maintainer>
+  <license>Proprietary</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <depend>rclcpp</depend>
+  <depend>sensor_msgs</depend>
+  <depend>nav_msgs</depend>
+  <depend>geometry_msgs</depend>
+  <depend>diagnostic_msgs</depend>
+  <depend>tf2_ros</depend>
+  <depend>pcl_conversions</depend>
+  <depend>eigen3_cmake_module</depend>
+  <depend>Eigen3</depend>
+
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+
+  <test_depend>ament_cmake_gtest</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

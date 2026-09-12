@@ -1,0 +1,79 @@
+/m20_evidence_mapping:
+  ros__parameters:
+    topics:
+      cloud: /LIDAR/POINTS
+      imu: /IMU
+      odom: /lio/robo/odom
+      evidence_output: /m20/local_mapping/evidence_cloud
+      diagnostics: /m20/local_mapping/diagnostics
+
+    frames:
+      output: m20_local_gravity
+
+    # Must be verified from calibration. Identity is intentional only because the
+    # factory merged cloud is already expressed in its robot-centric lidar_link.
+    input_transform:
+      translation: [0.0, 0.0, 0.0]
+      rpy_deg: [0.0, 0.0, 0.0]
+
+    synchronization:
+      tolerance_sec: 0.05
+      watchdog_timeout_sec: 0.5
+      buffer_duration_sec: 2.0
+      require_imu: true
+      require_odom: true
+
+    odometry_jump:
+      translation_m: 0.30
+      rotation_rad: 0.30
+      z_m: 0.20
+
+    map:
+      voxel_size_xy: 0.045
+      voxel_size_z: 0.060
+      roi_min_x: -4.0
+      roi_max_x: 4.0
+      roi_min_y: -4.0
+      roi_max_y: 4.0
+      roi_min_z: -1.0
+      roi_max_z: 0.8
+
+    body:
+      min_x: -0.40
+      max_x: 0.40
+      min_y: -0.20
+      max_y: 0.20
+      min_z: -0.50
+      max_z: 0.40
+
+    preprocessing:
+      enable_outlier_filter: true
+      outlier_radius: 0.10
+      outlier_min_neighbors: 4
+
+    sensors:
+      azimuth_half_fov_deg: 45.0
+      elevation_down_deg: -45.0
+      elevation_up_deg: 45.0
+      max_range: 4.0
+
+    visibility:
+      azimuth_bins: 640
+      elevation_bins: 40
+      neighbor_radius: 1
+
+    evidence:
+      weak_free_confirm_frames: 5
+      near_field_protect_range: 0.10
+      match_margin_base: 0.06
+      match_margin_scale: 0.015
+      free_margin_base: 0.10
+      free_margin_scale: 0.020
+      occupied_gain: 1.0
+      visibility_match_gain_scale: 0.25
+      strong_free_gain: 1.4
+      weak_free_gain: 0.50
+      relief_gain: 0.50
+      publish_score: 0.60
+      remove_score: 0.15
+      score_cap: 6.0

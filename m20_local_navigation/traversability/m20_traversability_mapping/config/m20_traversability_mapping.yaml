@@ -1,0 +1,69 @@
+m20_traversability_mapping:
+  ros__parameters:
+    topics:
+      evidence_input: /m20/local_mapping/evidence_cloud
+      traversability_grid: /m20/local_mapping/traversability/grid
+      obstacle_cloud: /m20/local_mapping/traversability/obstacle_cloud
+      terrain_cloud: /m20/local_mapping/traversability/terrain_cloud
+      diagnostics: /m20/local_mapping/traversability/diagnostics
+    grid:
+      length_x: 8.0
+      length_y: 8.0
+      resolution: 0.05
+      min_z: -1.0
+      max_z: 0.8
+    surface:
+      expected_ground_z: -0.48
+      vertical_cluster_gap: 0.10
+      ground_reference:
+        region_enabled: true
+        region_min_x: -3.0
+        region_max_x: 3.0
+        region_min_y: -1.0
+        region_max_y: 1.0
+        window: 0.12
+        min_support_cells: 20
+      max_drop: 0.25
+      min_vertical_obstacle_height: 0.10
+      minimum_clearance: 0.50
+    coverage:
+      center_padding_enabled: true
+      center_padding_distance: 0.80
+      raycast_enabled: true
+      raycast_max_distance: 4.0
+      raycast_max_nan_gap_cells: 3
+      front_lidar_x: 0.32028
+      front_lidar_y: 0.0
+      rear_lidar_x: -0.32028
+      rear_lidar_y: 0.0
+      treat_uncoverable_as_missing: true
+    terrain:
+      plane_radius_cells: 1
+      min_plane_samples: 5
+      slope_free_deg: 10.0
+      slope_block_deg: 80.0
+      max_slope_deg: 89.0
+      roughness_free: 0.01
+      roughness_block: 0.04
+      max_roughness: 0.10
+      step_free: 0.08
+      step_block: 0.35
+      max_step_height: 0.35
+    cost:
+      slope_weight: 0.30
+      roughness_weight: 0.30
+      step_weight: 0.40
+      missing_cost: 20
+      hard_cost: 90
+    inpainting:
+      max_cells: 200
+      min_boundary_cells: 6
+      max_boundary_height_range: 0.10
+    safety:
+      # FIRST correspondence templates already contain the M20 swept body.
+      # Keep this zero to avoid a second, non-vendor 0.30 m dilation.
+      inflation_radius: 0.0
+    confidence:
+      full_evidence_score: 3.0
+    watchdog:
+      stale_timeout_sec: 0.5

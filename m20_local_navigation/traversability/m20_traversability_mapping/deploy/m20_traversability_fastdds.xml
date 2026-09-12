@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profiles xmlns="http://www.eprosima.com/XMLSchemas/fastRTPS_Profiles">
+  <transport_descriptors>
+    <transport_descriptor>
+      <transport_id>m20_traversability_eno1_udp</transport_id>
+      <type>UDPv4</type>
+      <interfaceWhiteList>
+        <address>10.21.31.121</address>
+      </interfaceWhiteList>
+      <sendBufferSize>16777216</sendBufferSize>
+      <receiveBufferSize>33554432</receiveBufferSize>
+      <maxMessageSize>65500</maxMessageSize>
+      <non_blocking_send>true</non_blocking_send>
+    </transport_descriptor>
+    <transport_descriptor>
+      <transport_id>m20_traversability_shm</transport_id>
+      <type>SHM</type>
+      <segment_size>67108864</segment_size>
+    </transport_descriptor>
+  </transport_descriptors>
+  <participant profile_name="m20_traversability_eno1" is_default_profile="true">
+    <rtps>
+      <useBuiltinTransports>false</useBuiltinTransports>
+      <userTransports>
+        <transport_id>m20_traversability_eno1_udp</transport_id>
+        <transport_id>m20_traversability_shm</transport_id>
+      </userTransports>
+    </rtps>
+  </participant>
+</profiles>
